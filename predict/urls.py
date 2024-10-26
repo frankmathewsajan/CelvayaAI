@@ -1,9 +1,12 @@
 from django.urls import path
 
-from .views import submit_health_data, index, results
+from .views import *
 
 urlpatterns = [
     path('', index, name='index'),
-    path('submit/', submit_health_data, name='submit_health_data'),  # Add this line
-    path('results/', results, name='results'),  # Add this line
+    path('login/', login, name='login'),
+    path('register/', register, name='register'),
+    path('logout/', logout, name='logout'),
+    path('submit/', submit_health_data, name='submit_health_data'),
+    path('results/', results, name='results'),
 ]

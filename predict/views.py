@@ -1,10 +1,72 @@
-from django.shortcuts import render
+from django.contrib.auth import authenticate, login as user_login
+from django.contrib.auth import logout as user_logout
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
 
 from .forms import HealthDataForm  # Import the form
 
 
 def index(request):
-    return render(request, 'predict/index.html')
+    return render(request, 'predict/index.html') if request.user.is_authenticated else login(request)
+
+
+def login(request):
+    if request.method == "POST":
+
+        # Attempt to sign user in
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+
+        # Check if authentication successful
+        if user is not None:
+            user_login(request, user)
+            print(user)
+            return redirect('index')
+        else:
+            return render(request, "predict/auth/login.html", {
+                "message": "Invalid username and/or password."
+            })
+    else:
+        return render(request, "predict/auth/login.html") if not request.user.is_authenticated else index(request)
+
+
+def register(request):
+    if request.method == "POST":
+        # Gather form data
+        username = request.POST["username"]
+        password = request.POST["password"]
+        confirm_password = request.POST["confirm_password"]
+
+        # Check if passwords match
+        if password != confirm_password:
+            return render(request, "predict/auth/register.html", {
+                "message": "Passwords do not match."
+            })
+
+        # Check if username is taken
+        try:
+            if User.objects.get(username=username):
+                return render(request, "predict/auth/register.html", {
+                    "message": "Username already taken."
+                })
+        except User.DoesNotExist:
+            pass
+
+        # Create the user
+        user = User.objects.create_user(username=username, password=password)
+        user.save()
+
+        # Automatically log in the new user and redirect to index
+        user_login(request, user)
+        return redirect('index')
+    else:
+        return render(request, "predict/auth/register.html") if not request.user.is_authenticated else index(request)
+
+
+def logout(request):
+    user_logout(request)
+    return redirect('index')
 
 
 def results(request):
