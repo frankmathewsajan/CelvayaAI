@@ -1,13 +1,46 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login as user_login
 from django.contrib.auth import logout as user_logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
-from .forms import HealthDataForm  # Import the form
+from .models import HealthData
 
 
+@login_required
 def index(request):
-    return render(request, 'predict/index.html') if request.user.is_authenticated else login(request)
+    user_data = HealthData.objects.filter(user=request.user).first()
+    errors = {}
+
+    if request.method == 'POST':
+        # Process the form submission
+        form_data = request.POST
+
+        # Add your form validation here and set `errors` if there are issues
+
+        if not errors:
+            # Save or update the user's health data
+            HealthData.objects.update_or_create(
+                user=request.user,
+                defaults={
+                    'diet': form_data.get('diet'),
+                    'stress': form_data.get('stress'),
+                    'activity': form_data.get('activity'),
+                    'sleep': form_data.get('sleep'),
+                    'biometrics': form_data.get('biometrics'),
+                    'medications': form_data.get('medications'),
+                    'family_history': form_data.get('family_history')
+                }
+            )
+            return redirect('success_page')  # Replace 'success_page' with your success URL
+
+    # If it's a GET request, pass the user's data to pre-fill the form
+    context = {
+        'form_data': user_data,
+        'errors': errors
+    }
+    return render(request, 'predict/index.html', context)
 
 
 def login(request):
@@ -33,35 +66,24 @@ def login(request):
 
 def register(request):
     if request.method == "POST":
-        # Gather form data
         username = request.POST["username"]
         password = request.POST["password"]
         confirm_password = request.POST["confirm_password"]
 
-        # Check if passwords match
         if password != confirm_password:
-            return render(request, "predict/auth/register.html", {
-                "message": "Passwords do not match."
-            })
+            messages.error(request, "Passwords do not match.")
+            return render(request, "predict/auth/register.html")
 
-        # Check if username is taken
-        try:
-            if User.objects.get(username=username):
-                return render(request, "predict/auth/register.html", {
-                    "message": "Username already taken."
-                })
-        except User.DoesNotExist:
-            pass
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return render(request, "predict/auth/register.html")
 
         # Create the user
         user = User.objects.create_user(username=username, password=password)
-        user.save()
-
-        # Automatically log in the new user and redirect to index
         user_login(request, user)
         return redirect('index')
-    else:
-        return render(request, "predict/auth/register.html") if not request.user.is_authenticated else index(request)
+
+    return render(request, "predict/auth/register.html")
 
 
 def logout(request):
@@ -69,79 +91,142 @@ def logout(request):
     return redirect('index')
 
 
-def results(request):
-    return render(request, 'predict/result.html')
+@login_required()
+def results(request, health_data_id):
+    health_data = get_object_or_404(HealthData, id=health_data_id)
+
+    # Run AI analysis on the data
+    ai_analysis_report = analyze_health_data(health_data)
+
+    # Send data to template
+    context = {
+        'health_data': health_data,
+        'ai_analysis_report': ai_analysis_report,
+        # Chart data preparation here
+    }
+
+    return render(request, 'predict/result.html', context)
 
 
-def submit_health_data(request):
-    if request.method == 'POST':
-        form = HealthDataForm(request.POST)  # Create a form instance with the submitted data
-        if form.is_valid():
-            # Extract data from the form
-            diet = form.cleaned_data['diet']
-            stress = form.cleaned_data['stress']
-            activity = form.cleaned_data['activity']
-            sleep = form.cleaned_data['sleep']
-            biometrics = form.cleaned_data['biometrics']  # e.g., BP:120/80, Glucose:90
-            medications = form.cleaned_data['medications']
-            family_history = form.cleaned_data['family_history']
-            comments = form.cleaned_data['comments']
+@login_required()
+def analyze_health_data(health_data):
+    """AI-based analysis based on the provided health data."""
+    reports = []
 
-            # Example: Parse biometrics
-            bp, glucose = parse_biometrics(biometrics)
+    # AI analysis logic from your JavaScript code here, translated to Python
 
-            # Calculate the risk profile
-            risk_profile = calculate_risk_profile(diet, stress, activity, sleep, bp, glucose)
-
-            # Render results
-            return render(request, 'predict/result.html', {'risk_profile': risk_profile})
+    # Stress Levels
+    if health_data.stress > 7:
+        reports.append("Your current stress levels are elevated, which can negatively affect your mental health...")
     else:
-        form = HealthDataForm()  # Create a new empty form
-
-    return render(request, 'predict/index.html', {'form': form})  # Pass the form to the template
-
-
-def parse_biometrics(biometrics):
-    try:
-        bp_data = biometrics.split(", ")
-        bp = int(bp_data[0].split(":")[1].split("/")[0])  # Systolic BP
-        glucose = int(bp_data[1].split(":")[1])  # Glucose level
-        return bp, glucose
-    except (IndexError, ValueError):
-        return None, None
-
-
-def calculate_risk_profile(diet, stress, activity, sleep, bp, glucose):
-    # Example scoring logic for risk profile
-    risk_score = 0
-
-    # Diet: Assign points based on the type of diet (simplified)
-    if "healthy" in diet.lower():
-        risk_score -= 1
-    elif "unhealthy" in diet.lower():
-        risk_score += 2
-
-    # Stress levels
-    risk_score += stress  # Higher stress = higher risk
+        reports.append("Your stress levels are within a manageable range...")
 
     # Physical Activity
-    if activity < 3:
-        risk_score += 2  # Inactive lifestyle
-
-    # Sleep
-    if sleep < 7:
-        risk_score += 1  # Less than 7 hours of sleep
-
-    # Blood Pressure and Glucose (simplified criteria)
-    if bp > 130:  # Assuming 130 is a threshold
-        risk_score += 3
-    if glucose > 100:  # Assuming 100 is a threshold
-        risk_score += 3
-
-    # Generate a risk profile based on the score
-    if risk_score <= 3:
-        return "Low Risk"
-    elif risk_score <= 6:
-        return "Moderate Risk"
+    if health_data.activity < 3:
+        reports.append("Your current physical activity level is below the recommended amount...")
+    elif health_data.activity >= 3 and health_data.activity < 7:
+        reports.append("Your physical activity levels are moderate...")
     else:
-        return "High Risk"
+        reports.append("High levels of physical activity are commendable...")
+
+    # Sleep Patterns
+    if health_data.sleep < 6:
+        reports.append("Your sleep duration is insufficient...")
+    elif health_data.sleep >= 6 and health_data.sleep <= 8:
+        reports.append("Your sleep duration is within the healthy range...")
+    else:
+        reports.append("Long sleep durations are observed...")
+
+    # Family Medical History
+    if 'cardiovascular' in health_data.family_history.lower():
+        reports.append(
+            "Given your family history of cardiovascular issues, it is essential to engage in regular monitoring...")
+    elif 'diabetes' in health_data.family_history.lower():
+        reports.append(
+            "With a family history of diabetes, it is crucial to monitor your blood sugar levels regularly...")
+    else:
+        reports.append("No significant family medical predispositions were detected...")
+
+    # Combine into one report
+    return " ".join(reports)
+
+
+@login_required
+def submit_health_data(request):
+    print(request.POST)
+    if request.method == 'POST':
+        # Extract each field from request.POST
+        diet = request.POST.get('diet')
+        stress = request.POST.get('stress')
+        activity = request.POST.get('activity')
+        sleep = request.POST.get('sleep')
+        biometrics = request.POST.get('biometrics')
+        medications = request.POST.get('medications')
+        family_history = request.POST.get('family_history')
+
+        # Basic validation (modify as needed for specific requirements)
+        errors = {}
+        try:
+            stress = int(stress)
+            if not (1 <= stress <= 10):
+                errors['stress'] = 'Stress level must be between 1 and 10.'
+        except (ValueError, TypeError):
+            errors['stress'] = 'Invalid stress level.'
+
+        try:
+            activity = int(activity)
+            if activity < 0:
+                errors['activity'] = 'Activity hours cannot be negative.'
+        except (ValueError, TypeError):
+            errors['activity'] = 'Invalid activity hours.'
+
+        try:
+            sleep = int(sleep)
+            if sleep < 0:
+                errors['sleep'] = 'Sleep hours cannot be negative.'
+        except (ValueError, TypeError):
+            errors['sleep'] = 'Invalid sleep hours.'
+
+        # Additional validation checks as needed
+        if not diet:
+            errors['diet'] = 'Dietary patterns field is required.'
+        if not biometrics:
+            errors['biometrics'] = 'Biometrics field is required.'
+        if not medications:
+            errors['medications'] = 'Current medications field is required.'
+        if not family_history:
+            errors['family_history'] = 'Family medical history field is required.'
+
+        # If errors exist, re-render the form with error messages
+        if errors:
+            return render(request, 'predict/index.html', {
+                'errors': errors,
+                'form_data': {
+                    'diet': diet,
+                    'stress': stress,
+                    'activity': activity,
+                    'sleep': sleep,
+                    'biometrics': biometrics,
+                    'medications': medications,
+                    'family_history': family_history,
+                }
+            })
+
+        # Save to the database if no errors
+        health_data = HealthData(
+            user=request.user,
+            diet=diet,
+            stress=stress,
+            activity=activity,
+            sleep=sleep,
+            biometrics=biometrics,
+            medications=medications,
+            family_history=family_history
+        )
+        health_data.save()
+        # store the id of the saved data
+        health_data_id = health_data.id
+        return redirect('results', health_data_id=health_data_id)
+
+    # Handle GET request by rendering an empty form
+    return render(request, 'predict/index.html')

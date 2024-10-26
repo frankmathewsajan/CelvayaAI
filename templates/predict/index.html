@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Data Input</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -11,6 +13,7 @@
             background-color: #1e3151;
             font-family: 'Raleway', sans-serif;
         }
+
         .container {
             margin-top: 50px;
             margin-bottom: 50px;
@@ -19,20 +22,25 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
             margin-bottom: 30px;
             color: #343a40;
         }
+
         .navbar {
             background-color: rgba(255, 255, 255, 0.8);
         }
+
         .navbar-brand, .nav-link {
             color: #1e3151;
         }
+
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
         }
+
         .navbar-nav .nav-link:hover {
             color: #007bff;
         }
@@ -40,92 +48,129 @@
 </head>
 <body>
 
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">CelvayaAI</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">About</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Contact</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">CelvayaAI</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Left-aligned Nav Links -->
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">About</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Contact</a>
+            </li>
+        </ul>
 
-    <!-- Health Data Input Form -->
-    <div class="container">
-        <h1 class="text-center">Health Data Input</h1>
-        <form id="healthForm" action="results">
-            <div class="form-group">
-                <label for="diet">Dietary Patterns:</label>
-                <textarea class="form-control" id="diet" name="diet" placeholder="E.g., Low-carb, vegetarian, etc." rows="4" required></textarea>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="stress">Stress Levels (1-10):</label>
-                    <input type="number" class="form-control" id="stress" name="stress" min="1" max="10" placeholder="Enter stress level" required>
+        <!-- Right-aligned User Icon and Dropdown -->
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 8px;"></i>
+                    <span>{{ user.username }}</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="#">Profile</a>
+                    <a class="dropdown-item" href="#">Settings</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                 </div>
-                <div class="form-group col-md-6">
-                    <label for="activity">Physical Activity (hours/week):</label>
-                    <input type="number" class="form-control" id="activity" name="activity" min="0" placeholder="Enter hours of activity" required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="sleep">Sleep Metrics (hours/night):</label>
-                    <input type="number" class="form-control" id="sleep" name="sleep" min="0" placeholder="Enter sleep hours" required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="biometrics">Patient Biometrics (e.g., BP, Glucose):</label>
-                    <input type="text" class="form-control" id="biometrics" name="biometrics" placeholder="Format: BP:120/80, Glucose:90" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="medications">Current Medications:</label>
-                <input type="text" class="form-control" id="medications" name="medications" placeholder="Enter medications" required>
-            </div>
-
-            <div class="form-group">
-                <label for="family-history">Family Medical History:</label>
-                <textarea class="form-control" id="family-history" name="family-history" placeholder="Enter family medical history" rows="2" required></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block">Submit</button>
-        </form>
+            </li>
+        </ul>
     </div>
+</nav>
 
-    <script>
-        document.getElementById('healthForm').onsubmit = function () {
-            // Collecting the form data
-            const healthData = {
-                diet: document.getElementById('diet').value,
-                stress: document.getElementById('stress').value,
-                activity: document.getElementById('activity').value,
-                sleep: document.getElementById('sleep').value,
-                biometrics: document.getElementById('biometrics').value,
-                medications: document.getElementById('medications').value,
-                familyHistory: document.getElementById('family-history').value
-            };
 
-            // Saving data to localStorage
-            localStorage.setItem('healthData', JSON.stringify(healthData));
-        };
-    </script>
+<!-- Health Data Input Form -->
+<div class="container">
+    <h1 class="text-center">Health Data Input</h1>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <form id="healthForm" action="{% url 'submit_health_data' %}" method="POST">
+        {% csrf_token %}
+
+        <!-- Dietary Patterns Field -->
+        <div class="form-group">
+            <label for="diet">Dietary Patterns:</label>
+            <textarea class="form-control" id="diet" name="diet" placeholder="E.g., Low-carb, vegetarian, etc." rows="4"
+                      required>{{ form_data.diet|default_if_none:'' }}</textarea>
+            {% if errors.diet %}
+                <small class="text-danger">{{ errors.diet }}</small>
+            {% endif %}
+        </div>
+
+        <!-- Stress and Activity Fields -->
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="stress">Stress Levels (1-10):</label>
+                <input type="number" class="form-control" id="stress" name="stress" min="1" max="10"
+                       placeholder="Enter stress level" value="{{ form_data.stress|default_if_none:'' }}" required>
+                {% if errors.stress %}
+                    <small class="text-danger">{{ errors.stress }}</small>
+                {% endif %}
+            </div>
+            <div class="form-group col-md-6">
+                <label for="activity">Physical Activity (hours/week):</label>
+                <input type="number" class="form-control" id="activity" name="activity" min="0"
+                       placeholder="Enter hours of activity" value="{{ form_data.activity|default_if_none:'' }}" required>
+                {% if errors.activity %}
+                    <small class="text-danger">{{ errors.activity }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sleep and Biometrics Fields -->
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="sleep">Sleep Metrics (hours/night):</label>
+                <input type="number" class="form-control" id="sleep" name="sleep" min="0"
+                       placeholder="Enter sleep hours" value="{{ form_data.sleep|default_if_none:'' }}" required>
+                {% if errors.sleep %}
+                    <small class="text-danger">{{ errors.sleep }}</small>
+                {% endif %}
+            </div>
+            <div class="form-group col-md-6">
+                <label for="biometrics">Patient Biometrics (e.g., BP, Glucose):</label>
+                <input type="text" class="form-control" id="biometrics" name="biometrics"
+                       placeholder="Format: BP:120/80, Glucose:90" value="{{ form_data.biometrics|default_if_none:'' }}" required>
+                {% if errors.biometrics %}
+                    <small class="text-danger">{{ errors.biometrics }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Medications and Family History Fields -->
+        <div class="form-group">
+            <label for="medications">Current Medications:</label>
+            <input type="text" class="form-control" id="medications" name="medications" placeholder="Enter medications"
+                   value="{{ form_data.medications|default_if_none:'' }}" required>
+            {% if errors.medications %}
+                <small class="text-danger">{{ errors.medications }}</small>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="family_history">Family Medical History:</label>
+            <textarea class="form-control" id="family_history" name="family_history"
+                      placeholder="Enter family medical history" rows="2" required>{{ form_data.family_history|default_if_none:'' }}</textarea>
+            {% if errors.family_history %}
+                <small class="text-danger">{{ errors.family_history }}</small>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Submit</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

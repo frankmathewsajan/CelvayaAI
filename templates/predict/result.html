@@ -11,6 +11,7 @@
             background-color: #1e3151;
             font-family: 'Raleway', sans-serif;
         }
+
         .container {
             margin-top: 30px;
             background: white;
@@ -18,17 +19,21 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
+
         h1, h2 {
             color: #343a40;
         }
+
         .summary-row, .chart-row {
             margin-top: 20px;
         }
+
         .chart-container {
             position: relative;
             height: 300px;
             width: 100%;
         }
+
         .ai-analysis {
             margin-top: 30px;
             padding: 15px;
@@ -40,6 +45,45 @@
 </head>
 <body>
 
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">CelvayaAI</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Left-aligned Nav Links -->
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">About</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Contact</a>
+            </li>
+        </ul>
+
+        <!-- Right-aligned User Icon and Dropdown -->
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-right: 8px;"></i>
+                    <span>{{ user.username }}</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="#">Profile</a>
+                    <a class="dropdown-item" href="#">Settings</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
 <div class="container">
     <h1 class="text-center">Health Data Report</h1>
 
@@ -48,15 +92,15 @@
         <h2>Patient Health Summary</h2>
         <div class="summary-row row">
             <div class="col-md-6">
-                <p><strong>Dietary Patterns:</strong> <span id="diet"></span></p>
-                <p><strong>Stress Levels:</strong> <span id="stress"></span>/10</p>
-                <p><strong>Physical Activity:</strong> <span id="activity"></span> hours/week</p>
-                <p><strong>Sleep Metrics:</strong> <span id="sleep"></span> hours/night</p>
+                <p><strong>Dietary Patterns:</strong> {{ health_data.diet }}</p>
+                <p><strong>Stress Levels:</strong> {{ health_data.stress }}/10</p>
+                <p><strong>Physical Activity:</strong> {{ health_data.activity }} hours/week</p>
+                <p><strong>Sleep Metrics:</strong> {{ health_data.sleep }} hours/night</p>
             </div>
             <div class="col-md-6">
-                <p><strong>Patient Biometrics:</strong> <span id="biometrics"></span></p>
-                <p><strong>Current Medications:</strong> <span id="medications"></span></p>
-                <p><strong>Family Medical History:</strong> <span id="family-history"></span></p>
+                <p><strong>Patient Biometrics:</strong> {{ health_data.biometrics }}</p>
+                <p><strong>Current Medications:</strong> {{ health_data.medications }}</p>
+                <p><strong>Family Medical History:</strong> {{ health_data.family_history }}</p>
             </div>
         </div>
     </div>
@@ -64,10 +108,10 @@
     <!-- AI Analysis Report -->
     <div class="ai-analysis">
         <h2>AI Analysis Report</h2>
-        <p id="ai-analysis-report"></p>
+        <p>{{ ai_analysis_report }}</p>
     </div>
 
-    <!-- Charts Row -->
+    <!-- Charts -->
     <div class="chart-row row">
         <div class="col-md-6">
             <div class="chart-container">
@@ -80,127 +124,50 @@
             </div>
         </div>
     </div>
+
+    <!-- JavaScript for Charts using context data -->
+    <script>
+        // Example chart setup for stress and activity/sleep
+        const stressData = {{ health_data.stress }};
+        const activityData = {{ health_data.activity }};
+        const sleepData = {{ health_data.sleep }};
+
+        // Stress Level Chart
+        new Chart(document.getElementById('stressChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Stress Level'],
+                datasets: [{
+                    label: 'Stress Level',
+                    data: [stressData],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { /* Chart options */}
+        });
+
+        // Activity and Sleep Chart
+        new Chart(document.getElementById('activitySleepChart').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: ['Physical Activity', 'Sleep'],
+                datasets: [{
+                    label: 'Activity and Sleep Breakdown',
+                    data: [activityData, sleepData],
+                    backgroundColor: ['rgba(54, 162, 235, 0.2)', 'rgba(75, 192, 192, 0.2)'],
+                    borderColor: ['rgba(54, 162, 235, 1)', 'rgba(75, 192, 192, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: { /* Chart options */}
+        });
+    </script>
 </div>
 
-<script>
-    // Load data from localStorage
-    const healthData = JSON.parse(localStorage.getItem('healthData'));
-    document.getElementById('diet').textContent = healthData.diet;
-    document.getElementById('stress').textContent = healthData.stress;
-    document.getElementById('activity').textContent = healthData.activity;
-    document.getElementById('sleep').textContent = healthData.sleep;
-    document.getElementById('biometrics').textContent = healthData.biometrics;
-    document.getElementById('medications').textContent = healthData.medications;
-    document.getElementById('family-history').textContent = healthData.familyHistory;
-
-    // AI Diagnosis Logic Based on Data
-    function getDiagnosisReport(data) {
-        const reports = [];
-
-        // Stress Levels
-        if (data.stress > 7) {
-            reports.push("Your current stress levels are elevated, which can negatively affect your mental health, lead to fatigue, and increase the risk of chronic diseases such as hypertension and diabetes. It is advisable to incorporate stress-reducing techniques such as mindfulness meditation, regular physical activity, and deep-breathing exercises into your daily routine.");
-        } else {
-            reports.push("Your stress levels are within a manageable range. Maintaining these levels is crucial for overall well-being, as they help support a balanced immune system and lower the risk of stress-related health issues.");
-        }
-
-        // Physical Activity
-        if (data.activity < 3) {
-            reports.push("Your current physical activity level is below the recommended amount. Regular exercise is essential for maintaining a healthy weight, improving cardiovascular health, and enhancing mental well-being. Aim for at least 150 minutes of moderate aerobic activity per week, such as brisk walking or cycling, complemented by muscle-strengthening activities on two or more days per week.");
-        } else if (data.activity >= 3 && data.activity < 7) {
-            reports.push("Your physical activity levels are moderate, which positively contribute to your overall health. Continuing this level of activity can enhance cardiovascular fitness, strength, and mood while reducing the risk of chronic diseases.");
-        } else {
-            reports.push("High levels of physical activity are commendable and associated with numerous health benefits, including improved heart health, better sleep quality, and reduced anxiety levels. Ensure that you balance this with adequate recovery and nutrition to support your active lifestyle.");
-        }
-
-        // Sleep Patterns
-        if (data.sleep < 6) {
-            reports.push("Your sleep duration is insufficient. Chronic sleep deprivation can lead to various health issues, including weakened immune response, poor cognitive function, and increased risk of chronic conditions. Strive to achieve 7-9 hours of sleep per night by establishing a regular sleep schedule and creating a calming bedtime routine.");
-        } else if (data.sleep >= 6 && data.sleep <= 8) {
-            reports.push("Your sleep duration is within the healthy range, which is beneficial for cognitive function, emotional regulation, and overall health. To maintain optimal health, consider practices that enhance sleep quality, such as limiting screen time before bed and creating a comfortable sleep environment.");
-        } else {
-            reports.push("Long sleep durations are observed, which can be advantageous when accompanied by an active lifestyle. However, ensure that excessive sleep is not a symptom of underlying issues such as sleep apnea or depression.");
-        }
-
-        // Family Medical History
-        if (data.familyHistory.toLowerCase().includes("cardiovascular")) {
-            reports.push("Given your family history of cardiovascular issues, it is essential to engage in regular monitoring of your heart health. Lifestyle modifications such as adopting a heart-healthy diet rich in fruits, vegetables, and whole grains, alongside regular physical activity, can significantly mitigate potential risks.");
-        } else if (data.familyHistory.toLowerCase().includes("diabetes")) {
-            reports.push("With a family history of diabetes, it is crucial to monitor your blood sugar levels regularly. Adopting a diet low in refined sugars and rich in fiber, along with regular exercise, can play a pivotal role in preventing the onset of diabetes.");
-        } else {
-            reports.push("No significant family medical predispositions were detected, which is encouraging. However, it remains essential to maintain a healthy lifestyle to promote longevity and overall well-being.");
-        }
-
-        // Additional Biometrics-Based Analysis
-        if (data.biometrics.bloodPressure && data.biometrics.bloodPressure > 130) {
-            reports.push("Your blood pressure readings suggest prehypertension. Monitoring and lifestyle modifications, including a low-sodium diet, weight management, and regular aerobic activity, can be effective strategies to maintain healthy blood pressure levels.");
-        }
-        if (data.biometrics.cholesterol && data.biometrics.cholesterol > 200) {
-            reports.push("Elevated cholesterol levels could increase your risk for heart disease. A heart-healthy diet, rich in omega-3 fatty acids, fiber, and antioxidants, is recommended to improve lipid profiles and support heart health.");
-        }
-        if (data.biometrics.bmi && data.biometrics.bmi > 25) {
-            reports.push("Your BMI indicates a higher weight status, which may contribute to various health risks. A structured weight management plan involving balanced nutrition and regular exercise could help reduce these risks and promote a healthier body composition.");
-        }
-
-        // Combine reports into two paragraphs for a thorough analysis
-        const firstParagraph = reports.slice(0, Math.ceil(reports.length / 2)).join(" ");
-        const secondParagraph = reports.slice(Math.ceil(reports.length / 2)).join(" ");
-        return `${firstParagraph} ${secondParagraph}`;
-    }
-
-    // Generate AI Analysis Report
-    function generateAIAnalysis(data) {
-        const analysis = getDiagnosisReport(data);
-        return `Based on your health data, here's a comprehensive analysis: ${analysis}`;
-    }
-    document.getElementById('ai-analysis-report').textContent = generateAIAnalysis(healthData);
-
-    // Stress Level Chart
-    const ctx1 = document.getElementById('stressChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'bar',
-        data: {
-            labels: ['Stress Level'],
-            datasets: [{
-                label: 'Stress Level',
-                data: [healthData.stress],
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: { beginAtZero: true, max: 10 }
-            },
-            plugins: {
-                legend: { display: true },
-                title: { display: true, text: 'Stress Level Visualization' }
-            }
-        }
-    });
-
-    // Activity and Sleep Chart
-    const ctx2 = document.getElementById('activitySleepChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'pie',
-        data: {
-            labels: ['Physical Activity', 'Sleep'],
-            datasets: [{
-                label: 'Activity and Sleep Breakdown',
-                data: [healthData.activity, healthData.sleep],
-                backgroundColor: ['rgba(54, 162, 235, 0.2)', 'rgba(75, 192, 192, 0.2)'],
-                borderColor: ['rgba(54, 162, 235, 1)', 'rgba(75, 192, 192, 1)'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { display: true },
-                title: { display: true, text: 'Activity and Sleep Breakdown' }
-            }
-        }
-    });
-</script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
