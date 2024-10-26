@@ -5,8 +5,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 
-
 from .models import HealthData
+
+
+def about(request):
+    return render(request, 'predict/about.html')
+
+
+def home(request):
+    return render(request, 'predict/home.html')
+
+
+def contact(request):
+    return render(request, 'predict/contact.html')
 
 
 @login_required
@@ -56,7 +67,7 @@ def login(request):
         if user is not None:
             user_login(request, user)
             print(user)
-            return redirect('index')
+            return redirect('home')
         else:
             return render(request, "predict/auth/login.html", {
                 "message": "Invalid username and/or password."
@@ -82,7 +93,7 @@ def register(request):
         # Create the user
         user = User.objects.create_user(username=username, password=password)
         user_login(request, user)
-        return redirect('index')
+        return redirect('home')
 
     return render(request, "predict/auth/register.html")
 
@@ -125,7 +136,7 @@ def analyze_health_data(health_data):
     # Physical Activity
     if health_data.activity < 3:
         reports.append("Your current physical activity level is below the recommended amount...")
-    elif health_data.activity >= 3 and health_data.activity < 7:
+    elif 3 <= health_data.activity < 7:
         reports.append("Your physical activity levels are moderate...")
     else:
         reports.append("High levels of physical activity are commendable...")
@@ -133,7 +144,7 @@ def analyze_health_data(health_data):
     # Sleep Patterns
     if health_data.sleep < 6:
         reports.append("Your sleep duration is insufficient...")
-    elif health_data.sleep >= 6 and health_data.sleep <= 8:
+    elif 6 <= health_data.sleep <= 8:
         reports.append("Your sleep duration is within the healthy range...")
     else:
         reports.append("Long sleep durations are observed...")
