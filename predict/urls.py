@@ -1,12 +1,9 @@
+from django.urls import path
 
-from django.contrib import admin
-from django.urls import path, include
-from . import views
-
-
-# Create your views here.
-
+from .views import submit_health_data, index, results
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', index, name='index'),
+    path('submit/', submit_health_data, name='submit_health_data'),  # Add this line
+    path('results/', results, name='results'),  # Add this line
 ]
